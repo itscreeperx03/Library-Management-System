@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Library Management System{% endblock %} - Campus SE Suite</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                            800: '#0c4a6e',
+                            900: '#082f49',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col font-sans">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-brand-900 text-white shadow-lg sticky top-0 z-40 border-b border-brand-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-sky-500 flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-book-bookmark text-xl"></i>
+                </div>
+                <div>
+                    <a href="/" class="font-bold text-lg tracking-tight hover:text-sky-300 transition">Athena LMS</a>
+                    <span class="text-xs text-sky-200 block hidden sm:inline">Software Engineering Iterative Waterfall Edition</span>
+                </div>
+            </div>
+
+            <!-- Header Quick Badges -->
+            <div class="flex items-center space-x-3">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-900 text-emerald-200 border border-emerald-700">
+                    <span class="w-2 h-2 mr-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                    Production Ready v2.0
+                </span>
+                <a href="/se-dossier" class="px-3 py-1.5 text-xs font-semibold rounded-md bg-sky-700 hover:bg-sky-600 text-white transition flex items-center space-x-1">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>Syllabus Dossier</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-x-6">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 shrink-0 hidden md:block">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sticky top-24">
+                <nav class="space-y-1">
+                    <a href="/" class="nav-link flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-700 hover:bg-sky-50 hover:text-brand-600 transition group">
+                        <i class="fa-solid fa-chart-pie w-6 text-slate-400 group-hover:text-brand-600"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/books" class="nav-link flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-700 hover:bg-sky-50 hover:text-brand-600 transition group">
+                        <i class="fa-solid fa-book w-6 text-slate-400 group-hover:text-brand-600"></i>
+                        <span>Books Catalog</span>
+                    </a>
+                    <a href="/members" class="nav-link flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-700 hover:bg-sky-50 hover:text-brand-600 transition group">
+                        <i class="fa-solid fa-users w-6 text-slate-400 group-hover:text-brand-600"></i>
+                        <span>Member Directory</span>
+                    </a>
+                    <a href="/circulation" class="nav-link flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-700 hover:bg-sky-50 hover:text-brand-600 transition group">
+                        <i class="fa-solid fa-arrow-right-arrow-left w-6 text-slate-400 group-hover:text-brand-600"></i>
+                        <span>Circulation Desk</span>
+                    </a>
+                    <a href="/fines" class="nav-link flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-700 hover:bg-sky-50 hover:text-brand-600 transition group">
+                        <i class="fa-solid fa-scale-balanced w-6 text-slate-400 group-hover:text-brand-600"></i>
+                        <span>Fines & Decision Matrix</span>
+                    </a>
+                    
+                    <div class="pt-4 mt-4 border-t border-slate-200">
+                        <p class="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Software Eng. Suite</p>
+                        <a href="/se-dossier" class="nav-link flex items-center px-3 py-2.5 mt-1 text-sm font-medium rounded-lg text-indigo-700 bg-indigo-50/60 hover:bg-indigo-100 transition group">
+                            <i class="fa-solid fa-file-shield w-6 text-indigo-500"></i>
+                            <span>SE Dossier & DFDs</span>
+                        </a>
+                        <a href="/reports" class="nav-link flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-700 hover:bg-sky-50 hover:text-brand-600 transition group">
+                            <i class="fa-solid fa-calculator w-6 text-slate-400 group-hover:text-brand-600"></i>
+                            <span>FP Count & Reports</span>
+                        </a>
+                    </div>
+                </nav>
+
+                <!-- System Stats Widget -->
+                <div class="mt-8 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+                        <span>Model</span>
+                        <span class="font-semibold text-slate-700">Iterative Waterfall</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+                        <span>Database</span>
+                        <span class="font-semibold text-slate-700">SQLite 3 (WAL)</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs text-slate-500">
+                        <span>Engine</span>
+                        <span class="font-semibold text-emerald-600">Decision Table v1.2</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <main class="flex-1 min-w-0">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Global Toast Notifications Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-auto py-4">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
+            <span>Library Management System &bull; Minor Project in Software Engineering &bull; Fully Automated Web Application</span>
+        </div>
+    </footer>
+
+    <!-- Global Scripts -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

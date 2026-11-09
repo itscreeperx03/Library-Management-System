@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block title %}Fines & Decision Table Engine{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header -->
+    <div class="pb-2 border-b border-slate-200">
+        <div class="flex items-center space-x-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Special Syllabus Focus</span>
+            <span class="text-xs text-slate-400">&bull; Software Engineering Minor Project #1</span>
+        </div>
+        <h1 class="text-2xl font-bold text-slate-800 tracking-tight mt-1">Decision Table for Fines & Settlement Ledger</h1>
+        <p class="text-sm text-slate-500 mt-1">Multi-variable conditional rule evaluation based on patron category, book tier, overdue severity, and condition penalties.</p>
+    </div>
+
+    <!-- Interactive Decision Table Simulator Sandbox -->
+    <div class="bg-gradient-to-br from-slate-900 to-brand-950 rounded-2xl p-6 text-white shadow-xl">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+            <div>
+                <h2 class="text-lg font-bold flex items-center">
+                    <i class="fa-solid fa-microchip text-sky-400 mr-2"></i> Live Decision Table Evaluation Simulator
+                </h2>
+                <p class="text-xs text-slate-400 mt-0.5">Test any condition combination and inspect the deterministic rule mapping in real time.</p>
+            </div>
+            <span class="text-xs font-mono bg-sky-950/80 text-sky-300 border border-sky-800 px-3 py-1 rounded-full">
+                Engine Active &bull; IEEE 830 Tested
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+            <!-- Input Controls (7 cols) -->
+            <div class="lg:col-span-7 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Patron Category (C1)</label>
+                        <select id="simMemberType" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-sky-500">
+                            <option value="Student">Student ($0.50/day &bull; Cap: $20)</option>
+                            <option value="Faculty">Faculty ($0.20/day &bull; Cap: $30)</option>
+                            <option value="Guest">Guest ($1.00/day &bull; Cap: $50)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Book Tier (C3)</label>
+                        <select id="simBookTier" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-sky-500">
+                            <option value="Standard">Standard (1.0x Base Rate)</option>
+                            <option value="Course Reserve">Course Reserve (2.0x Base Rate)</option>
+                            <option value="Rare/Reference">Rare/Reference (3.0x Base Rate)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-semibold text-slate-300 uppercase">Days Overdue (C2)</label>
+                        <span id="daysDisplay" class="text-sm font-bold text-sky-400 font-mono">12 Days</span>
+                    </div>
+                    <input type="range" id="simDaysOverdue" min="0" max="60" value="12" 
+                           class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-400">
+                    <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
+                        <span>0 (Grace &le;2d)</span>
+                        <span>7d (Tier 1)</span>
+                        <span>21d (Tier 2)</span>
+                        <span>60d (Tier 3 Suspended)</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Return Condition (C4)</label>
+                        <select id="simCondition" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-sky-500">
+                            <option value="Normal">Normal Condition ($0.00)</option>
+                            <option value="Minor Damage">Minor Damage (+$5.00)</option>
+                            <option value="Severe Damage">Severe Damage (+$15.00)</option>
+                            <option value="Lost">Lost Item (Cost + $10 Fee)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Book Valuation ($)</label>
+                        <input type="number" id="simCost" value="65.00" min="5" max="500" 
+                               class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-sky-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output Dashboard (5 cols) -->
+            <div class="lg:col-span-5 bg-slate-800/80 rounded-xl p-5 border border-slate-700 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-400 font-semibold uppercase">Matched Rule ID</span>
+                        <span id="outRuleId" class="px-2.5 py-1 rounded bg-sky-950 text-sky-300 border border-sky-800 font-mono text-xs font-bold">R-STU-T2-STD</span>
+                    </div>
+                    <h3 id="outRuleName" class="text-base font-bold text-white mt-1">Student Moderate Overdue [Standard]</h3>
+                    <p id="outExplanation" class="text-xs text-slate-300 mt-2 leading-relaxed">
+                        12 days overdue at base rate $0.50/day x 1.0 multiplier = $6.00.
+                    </p>
+                </div>
+
+                <div class="pt-4 mt-4 border-t border-slate-700 space-y-2">
+                    <div class="flex justify-between text-xs text-slate-400">
+                        <span>Base Rate & Multiplier:</span>
+                        <span id="outRateMult" class="font-mono text-slate-200">$0.50 &times; 1.0x</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-400">
+                        <span>Capped Overdue Fine:</span>
+                        <span id="outOverdue" class="font-mono text-slate-200">$6.00</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-400">
+                        <span>Damage / Replacement Fee:</span>
+                        <span id="outDamage" class="font-mono text-slate-200">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-400">
+                        <span>Account Consequence:</span>
+                        <span id="outAction" class="font-bold text-emerald-400">Normal</span>
+                    </div>
+                    <div class="pt-3 border-t border-slate-700 flex justify-between items-baseline">
+                        <span class="text-sm font-semibold text-slate-300">Total Assessed:</span>
+                        <span id="outTotal" class="text-3xl font-extrabold text-amber-400 font-mono">$6.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full Decision Matrix Reference Table -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+            <div>
+                <h3 class="text-base font-bold text-slate-800">Formal Decision Table (Rules R01 - R27)</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Syllabus compliance mapping condition combinations to explicit monetary and account actions.</p>
+            </div>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded bg-slate-100 text-slate-600">Deterministic Matrix</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-50 font-semibold uppercase text-slate-500 border-b border-slate-200">
+                    <tr>
+                        <th class="px-4 py-3">Rule</th>
+                        <th class="px-4 py-3">Patron Category</th>
+                        <th class="px-4 py-3">Overdue Bracket</th>
+                        <th class="px-4 py-3">Book Tier</th>
+                        <th class="px-4 py-3">Base Rate</th>
+                        <th class="px-4 py-3">Multiplier</th>
+                        <th class="px-4 py-3">Effective Daily</th>
+                        <th class="px-4 py-3">Policy Cap</th>
+                        <th class="px-4 py-3">Action Consequence</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-mono">
+                    {% for r in rules %}
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="px-4 py-3 font-bold text-brand-700">{{ r.rule_number }}</td>
+                        <td class="px-4 py-3 font-sans font-semibold text-slate-800">{{ r.member_type }}</td>
+                        <td class="px-4 py-3 font-sans">{{ r.days_range }}</td>
+                        <td class="px-4 py-3 font-sans">
+                            <span class="px-1.5 py-0.5 rounded 
+                                {% if r.book_tier == 'Standard' %}badge-standard
+                                {% elif r.book_tier == 'Course Reserve' %}badge-reserve
+                                {% else %}badge-rare{% endif %}">
+                                {{ r.book_tier }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">{{ r.base_rate }}</td>
+                        <td class="px-4 py-3">{{ r.multiplier }}</td>
+                        <td class="px-4 py-3 text-slate-800 font-bold">{{ r.effective_rate }}</td>
+                        <td class="px-4 py-3 text-slate-500">{{ r.max_cap }}</td>
+                        <td class="px-4 py-3 font-sans font-semibold 
+                            {% if r.action == 'Suspended' %}text-rose-600
+                            {% elif r.action == 'Warning' %}text-amber-600
+                            {% else %}text-emerald-600{% endif %}">
+                            {{ r.action }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Historical Fines Ledger -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+            <div>
+                <h3 class="text-base font-bold text-slate-800">Fines Ledger & Settlements</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Record of all past and outstanding fines generated across patron loans.</p>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-600">
+                <thead class="bg-slate-50 text-xs font-semibold uppercase text-slate-500 border-b border-slate-200">
+                    <tr>
+                        <th class="px-6 py-3.5">Fine ID</th>
+                        <th class="px-6 py-3.5">Member</th>
+                        <th class="px-6 py-3.5">Book Title</th>
+                        <th class="px-6 py-3.5">Days / Rule</th>
+                        <th class="px-6 py-3.5">Amount</th>
+                        <th class="px-6 py-3.5">Status</th>
+                        <th class="px-6 py-3.5 text-right">Settlement</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for f in fines %}
+                    <tr class="hover:bg-slate-50/70 transition">
+                        <td class="px-6 py-4 font-mono text-xs text-slate-500">#FN-{{ "%04d"|format(f.id) }}</td>
+                        <td class="px-6 py-4">
+                            <span class="font-semibold text-slate-800 block">{{ f.member_name }}</span>
+                            <span class="text-xs text-slate-500">{{ f.member_code }} &bull; {{ f.member_type }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-xs font-medium text-slate-700">{{ f.book_title }}</td>
+                        <td class="px-6 py-4">
+                            <span class="block text-xs font-semibold text-slate-800">{{ f.days_overdue }} days overdue</span>
+                            <span class="block text-[10px] font-mono text-slate-400">{{ f.rule_applied }}</span>
+                        </td>
+                        <td class="px-6 py-4 font-mono font-bold text-slate-800">${{ "%.2f"|format(f.total_fine) }}</td>
+                        <td class="px-6 py-4">
+                            {% if f.paid_status == 'Paid' %}
+                            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">Paid</span>
+                            {% else %}
+                            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-100 text-rose-800">Unpaid</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            {% if f.paid_status == 'Unpaid' %}
+                            <button onclick="settleFine({{ f.id }}, {{ f.total_fine }})" 
+                                    class="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+                                Settle Payment
+                            </button>
+                            {% else %}
+                            <span class="text-xs text-slate-400"><i class="fa-solid fa-check text-emerald-500 mr-1"></i>Settled</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-8 text-center text-slate-400">No fine records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const mType = document.getElementById('simMemberType');
+    const bTier = document.getElementById('simBookTier');
+    const days = document.getElementById('simDaysOverdue');
+    const daysDisplay = document.getElementById('daysDisplay');
+    const cond = document.getElementById('simCondition');
+    const cost = document.getElementById('simCost');
+
+    async function recalculate() {
+        daysDisplay.innerText = `${days.value} Days`;
+
+        try {
+            const res = await fetch('/api/fines/simulate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    member_type: mType.value,
+                    book_tier: bTier.value,
+                    days_overdue: parseInt(days.value),
+                    return_condition: cond.value,
+                    replacement_cost: parseFloat(cost.value)
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                const r = data.result;
+                document.getElementById('outRuleId').innerText = r.rule_id;
+                document.getElementById('outRuleName').innerText = r.rule_name;
+                document.getElementById('outExplanation').innerText = r.explanation;
+                document.getElementById('outRateMult').innerText = `$${r.base_rate.toFixed(2)} x ${r.tier_multiplier.toFixed(1)}x`;
+                document.getElementById('outOverdue').innerText = `$${r.capped_overdue_fine.toFixed(2)}`;
+                document.getElementById('outDamage').innerText = `$${(r.damage_fee + r.replacement_fee).toFixed(2)}`;
+                document.getElementById('outTotal').innerText = `$${r.total_fine.toFixed(2)}`;
+
+                const actElem = document.getElementById('outAction');
+                actElem.innerText = r.account_action;
+                actElem.className = `font-bold ${
+                    r.account_action === 'Suspended' ? 'text-rose-400' :
+                    r.account_action === 'Warning' ? 'text-amber-400' : 'text-emerald-400'
+                }`;
+            }
+        } catch (e) {
+            console.error('Simulator recalculation failed', e);
+        }
+    }
+
+    [mType, bTier, days, cond, cost].forEach(el => el.addEventListener('input', recalculate));
+    // Initial run
+    recalculate();
+
+    async function settleFine(id, amount) {
+        const method = prompt(`Confirm payment of $${amount.toFixed(2)}. Enter payment method (Cash / Card / Campus Card):`, "Cash");
+        if (!method) return;
+
+        try {
+            const res = await fetch(`/api/fines/${id}/settle`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payment_method: method })
+            });
+            const result = await res.json();
+            if (result.success) {
+                showToast(result.message, 'success');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                showToast(result.message || 'Settlement failed', 'error');
+            }
+        } catch (e) {
+            showToast('Network error during settlement', 'error');
+        }
+    }
+</script>
+{% endblock %}

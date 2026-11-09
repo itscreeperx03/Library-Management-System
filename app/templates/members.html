@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Member Directory{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header with Action -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-2 border-b border-slate-200">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Member Directory & Patron Quotas</h1>
+            <p class="text-sm text-slate-500 mt-1">Manage student, faculty, and guest accounts, borrowing thresholds, and account holds.</p>
+        </div>
+        <button onclick="openModal('addMemberModal')" class="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg shadow-sm transition">
+            <i class="fa-solid fa-user-plus mr-2"></i> Enroll New Member
+        </button>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4">
+        <div class="flex-1 relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+            <input type="text" id="memberSearch" placeholder="Search by name, member code, or email..." 
+                   class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <select id="typeFilter" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="All">All Roles</option>
+                <option value="Student">Student (4 books, 14 days)</option>
+                <option value="Faculty">Faculty (8 books, 30 days)</option>
+                <option value="Guest">Guest (2 books, 7 days)</option>
+            </select>
+            <select id="statusFilter" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="All">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Suspended">Suspended</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Member Directory Table -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-600">
+                <thead class="bg-slate-50 text-xs font-semibold uppercase text-slate-500 border-b border-slate-200">
+                    <tr>
+                        <th class="px-6 py-3.5">Member Name & Code</th>
+                        <th class="px-6 py-3.5">Role Tier</th>
+                        <th class="px-6 py-3.5">Contact Details</th>
+                        <th class="px-6 py-3.5">Quota Usage</th>
+                        <th class="px-6 py-3.5">Unpaid Fines</th>
+                        <th class="px-6 py-3.5">Status</th>
+                        <th class="px-6 py-3.5 text-right">Circulation</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100" id="memberTableBody">
+                    {% for m in members %}
+                    <tr class="hover:bg-slate-50/70 transition member-row"
+                        data-name="{{ m.name|lower }}"
+                        data-code="{{ m.member_code|lower }}"
+                        data-email="{{ m.email|lower }}"
+                        data-type="{{ m.member_type }}"
+                        data-status="{{ m.status }}">
+                        <td class="px-6 py-4">
+                            <span class="font-semibold text-slate-800 block">{{ m.name }}</span>
+                            <span class="font-mono text-xs text-brand-600">{{ m.member_code }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-xs font-medium px-2.5 py-1 rounded 
+                                {% if m.member_type == 'Faculty' %}bg-purple-100 text-purple-800
+                                {% elif m.member_type == 'Student' %}bg-sky-100 text-sky-800
+                                {% else %}bg-slate-200 text-slate-800{% endif %}">
+                                {{ m.member_type }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-xs">
+                            <span class="text-slate-700 block"><i class="fa-solid fa-envelope text-slate-400 mr-1"></i>{{ m.email }}</span>
+                            <span class="text-slate-400"><i class="fa-solid fa-phone text-slate-400 mr-1"></i>{{ m.phone or 'N/A' }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-semibold text-slate-700">{{ m.current_borrowed_count }}/{{ m.max_books }}</span>
+                                <div class="w-16 bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                                    <div class="bg-brand-500 h-1.5 rounded-full" style="width: {{ (m.current_borrowed_count / m.max_books * 100)|round }}%"></div>
+                                </div>
+                            </div>
+                            <span class="text-xs text-slate-400">{{ m.loan_period_days }} days duration</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if m.outstanding_fines > 0 %}
+                            <span class="text-rose-600 font-bold">${{ "%.2f"|format(m.outstanding_fines) }}</span>
+                            {% else %}
+                            <span class="text-emerald-600 text-xs font-medium"><i class="fa-solid fa-check mr-1"></i>No fines</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if m.status == 'Active' %}
+                            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">Active</span>
+                            {% else %}
+                            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-100 text-rose-800">Suspended</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <a href="/circulation?member_id={{ m.id }}" class="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-semibold rounded transition">
+                                Issue Book
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Enroll Member Modal -->
+<div id="addMemberModal" class="modal-backdrop fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <h3 class="text-lg font-bold text-slate-800">Enroll New Library Member</h3>
+            <button onclick="closeModal('addMemberModal')" class="text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <form id="addMemberForm" class="mt-4 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Member Code *</label>
+                    <input type="text" name="member_code" required placeholder="MEM-STU-104" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Role / Tier *</label>
+                    <select name="member_type" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500">
+                        <option value="Student">Student (4 books, 14 days)</option>
+                        <option value="Faculty">Faculty (8 books, 30 days)</option>
+                        <option value="Guest">Guest (2 books, 7 days)</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Full Legal Name *</label>
+                <input type="text" name="name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Campus Email *</label>
+                    <input type="email" name="email" required placeholder="name@campus.edu" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Phone Number</label>
+                    <input type="tel" name="phone" placeholder="+91 ..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500">
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
+                <button type="button" onclick="closeModal('addMemberModal')" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-sm font-semibold shadow-sm">Complete Enrollment</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const mSearch = document.getElementById('memberSearch');
+    const typeFilter = document.getElementById('typeFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const mRows = document.querySelectorAll('.member-row');
+
+    function filterMembers() {
+        const query = mSearch.value.toLowerCase().trim();
+        const selectedType = typeFilter.value;
+        const selectedStatus = statusFilter.value;
+
+        mRows.forEach(row => {
+            const name = row.getAttribute('data-name');
+            const code = row.getAttribute('data-code');
+            const email = row.getAttribute('data-email');
+            const type = row.getAttribute('data-type');
+            const status = row.getAttribute('data-status');
+
+            const matchesQuery = !query || name.includes(query) || code.includes(query) || email.includes(query);
+            const matchesType = selectedType === 'All' || type === selectedType;
+            const matchesStatus = selectedStatus === 'All' || status === selectedStatus;
+
+            row.style.display = (matchesQuery && matchesType && matchesStatus) ? '' : 'none';
+        });
+    }
+
+    mSearch.addEventListener('input', filterMembers);
+    typeFilter.addEventListener('change', filterMembers);
+    statusFilter.addEventListener('change', filterMembers);
+
+    document.getElementById('addMemberForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            const res = await fetch('/api/members', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.success) {
+                showToast('Member registered successfully!', 'success');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                showToast(result.error || 'Failed to enroll member', 'error');
+            }
+        } catch (e) {
+            showToast('Server communication error', 'error');
+        }
+    });
+</script>
+{% endblock %}

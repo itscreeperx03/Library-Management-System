@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Software Engineering Dossier{% endblock %}
+
+{% block content %}
+<!-- Mermaid.js for in-browser diagram rendering -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+</script>
+
+<div class="space-y-8">
+    <!-- Header -->
+    <div class="pb-2 border-b border-slate-200">
+        <div class="flex items-center space-x-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800">Minor Project Syllabus Focus</span>
+            <span class="text-xs text-slate-400">&bull; Academic & Viva Voce Dossier</span>
+        </div>
+        <h1 class="text-2xl font-bold text-slate-800 tracking-tight mt-1">Software Engineering Specification Dossier</h1>
+        <p class="text-sm text-slate-500 mt-1">Formal Iterative Waterfall deliverables: DFDs, FP Calculations, Decision Table, and IEEE 830 traceability.</p>
+    </div>
+
+    <!-- Syllabus Focus Quick Summary Navigation -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <a href="#dfd-section" class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-brand-500 transition group">
+            <span class="text-xs font-bold text-brand-600 uppercase">Focus 1</span>
+            <h4 class="text-base font-bold text-slate-800 group-hover:text-brand-600 mt-1">Data Flow Diagrams (DFD)</h4>
+            <p class="text-xs text-slate-500 mt-1">Context Level 0, Level 1 Decomposition & Level 2 Circulation flows.</p>
+        </a>
+        <a href="#fp-section" class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-brand-500 transition group">
+            <span class="text-xs font-bold text-emerald-600 uppercase">Focus 2</span>
+            <h4 class="text-base font-bold text-slate-800 group-hover:text-brand-600 mt-1">Function Point (FP) Count</h4>
+            <p class="text-xs text-slate-500 mt-1">UFP, 14 GSC factors, VAF, Adjusted FP, and COCOMO effort estimates.</p>
+        </a>
+        <a href="#table-section" class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm hover:border-brand-500 transition group">
+            <span class="text-xs font-bold text-amber-600 uppercase">Focus 3</span>
+            <h4 class="text-base font-bold text-slate-800 group-hover:text-brand-600 mt-1">Decision Table for Fines</h4>
+            <p class="text-xs text-slate-500 mt-1">Condition/Action stubs, rule verification, grace exemption & lost caps.</p>
+        </a>
+    </div>
+
+    <!-- SECTION 1: DATA FLOW DIAGRAMS (DFD) -->
+    <div id="dfd-section" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+        <div>
+            <span class="text-xs font-bold text-brand-600 uppercase tracking-wider">System Architecture</span>
+            <h2 class="text-xl font-bold text-slate-800 mt-1">1. Data Flow Diagrams (DFD)</h2>
+            <p class="text-xs text-slate-500 mt-1">Visualizing information movement between external actors, processes, and data stores.</p>
+        </div>
+
+        <!-- Level 0 Context DFD -->
+        <div class="border border-slate-100 rounded-xl p-5 bg-slate-50/50">
+            <h3 class="text-sm font-bold text-slate-700 mb-3 flex items-center">
+                <i class="fa-solid fa-diagram-project text-brand-600 mr-2"></i> Context Level 0 DFD (System Boundary)
+            </h3>
+            <div class="mermaid bg-white p-4 rounded-lg border border-slate-200 overflow-x-auto text-center">
+flowchart LR
+    P[Patron / Student / Faculty] -->|Credentials & Search Queries| LMS((0.0 Library Management System))
+    LMS -->|Catalog Results & Loan Receipts| P
+    P -->|Book Return & Fine Payment| LMS
+    LMS -->|Overdue Notifications & Fine Slips| P
+    LIB[Librarian / Admin] -->|Inventory Catalog Updates & Quota Controls| LMS
+    LMS -->|Circulation Statistics & Audit Logs| LIB
+    BANK[Payment Gateway / Cashier] -->|Payment Authorization & Settlement| LMS
+            </div>
+        </div>
+
+        <!-- Level 1 DFD -->
+        <div class="border border-slate-100 rounded-xl p-5 bg-slate-50/50">
+            <h3 class="text-sm font-bold text-slate-700 mb-3 flex items-center">
+                <i class="fa-solid fa-diagram-project text-brand-600 mr-2"></i> Level 1 DFD: Subsystem Decomposition
+            </h3>
+            <div class="mermaid bg-white p-4 rounded-lg border border-slate-200 overflow-x-auto text-center">
+flowchart TD
+    PATRON[Patron] -->|Account Info| P1((1.0 Patron Authentication))
+    P1 --> D1[(Members Store)]
+    
+    PATRON -->|Search Query| P2((2.0 Catalog Management))
+    LIB[Librarian] -->|Add / Update Volumes| P2
+    P2 <--> D2[(Books Store)]
+    
+    PATRON -->|Checkout Request| P3((3.0 Circulation & Loans))
+    P3 <--> D1
+    P3 <--> D2
+    P3 --> D3[(Borrow Records Store)]
+    
+    PATRON -->|Book Return / Damaged| P4((4.0 Fine Decision Engine))
+    P3 -->|Return Trigger| P4
+    P4 --> D4[(Fines Ledger)]
+    
+    LIB -->|Generate Metrics| P5((5.0 Reporting & FP Engine))
+    D1 --> P5
+    D2 --> P5
+    D3 --> P5
+    D4 --> P5
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2: FUNCTION POINT ANALYSIS -->
+    <div id="fp-section" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+        <div>
+            <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Metrics & Measurement</span>
+            <h2 class="text-xl font-bold text-slate-800 mt-1">2. Function Point (FP) Calculation Dossier</h2>
+            <p class="text-xs text-slate-500 mt-1">IFPUG standard unadjusted function points, 14 General System Characteristics, and effort equations.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                <p class="text-xs text-emerald-700 font-semibold uppercase">Unadjusted FP (UFP)</p>
+                <h3 class="text-3xl font-extrabold text-emerald-800 mt-1">{{ fp_data.unadjusted_fp }}</h3>
+                <p class="text-xs text-emerald-600 mt-1">Sum of ILF, EIF, EI, EO, EQ</p>
+            </div>
+            <div class="p-4 bg-sky-50 rounded-xl border border-sky-200">
+                <p class="text-xs text-sky-700 font-semibold uppercase">Total Influence (TDI)</p>
+                <h3 class="text-3xl font-extrabold text-sky-800 mt-1">{{ fp_data.total_degree_influence }}</h3>
+                <p class="text-xs text-sky-600 mt-1">&Sigma; 14 GSC factor ratings (0-5)</p>
+            </div>
+            <div class="p-4 bg-indigo-50 rounded-xl border border-indigo-200">
+                <p class="text-xs text-indigo-700 font-semibold uppercase">Adjustment Factor (VAF)</p>
+                <h3 class="text-3xl font-extrabold text-indigo-800 mt-1">{{ fp_data.value_adjustment_factor }}</h3>
+                <p class="text-xs text-indigo-600 mt-1">VAF = 0.65 + (0.01 &times; TDI)</p>
+            </div>
+            <div class="p-4 bg-amber-50 rounded-xl border border-amber-200">
+                <p class="text-xs text-amber-700 font-semibold uppercase">Adjusted FP (AFP)</p>
+                <h3 class="text-3xl font-extrabold text-amber-800 mt-1">{{ fp_data.adjusted_fp }}</h3>
+                <p class="text-xs text-amber-600 mt-1">AFP = UFP &times; VAF</p>
+            </div>
+        </div>
+
+        <!-- UFP Breakdown Table -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-50 font-semibold uppercase text-slate-500 border-b border-slate-200">
+                    <tr>
+                        <th class="px-4 py-3">Category</th>
+                        <th class="px-4 py-3">Description</th>
+                        <th class="px-4 py-3">Components Count</th>
+                        <th class="px-4 py-3">Weight Total</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <tr>
+                        <td class="px-4 py-3 font-bold text-slate-800">Internal Logical Files (ILF)</td>
+                        <td class="px-4 py-3">Books, Members, Borrow Records, Fines, Reservations, Settings</td>
+                        <td class="px-4 py-3">{{ fp_data.categories.ILF|length }} files</td>
+                        <td class="px-4 py-3 font-mono font-bold text-emerald-700">{{ fp_data.type_totals.ILF }} FP</td>
+                    </tr>
+                    <tr>
+                        <td class="px-4 py-3 font-bold text-slate-800">External Interface Files (EIF)</td>
+                        <td class="px-4 py-3">Campus Directory (LDAP/SSO), Payment Gateway</td>
+                        <td class="px-4 py-3">{{ fp_data.categories.EIF|length }} interfaces</td>
+                        <td class="px-4 py-3 font-mono font-bold text-emerald-700">{{ fp_data.type_totals.EIF }} FP</td>
+                    </tr>
+                    <tr>
+                        <td class="px-4 py-3 font-bold text-slate-800">External Inputs (EI)</td>
+                        <td class="px-4 py-3">Add Book, Edit Book, Register Member, Issue, Return, Renew, Settle Fine, Reserve, Settings</td>
+                        <td class="px-4 py-3">{{ fp_data.categories.EI|length }} transactions</td>
+                        <td class="px-4 py-3 font-mono font-bold text-emerald-700">{{ fp_data.type_totals.EI }} FP</td>
+                    </tr>
+                    <tr>
+                        <td class="px-4 py-3 font-bold text-slate-800">External Outputs (EO)</td>
+                        <td class="px-4 py-3">Checkout Receipt, Overdue Notice Slip, Audit Report, Low Stock Alert</td>
+                        <td class="px-4 py-3">{{ fp_data.categories.EO|length }} outputs</td>
+                        <td class="px-4 py-3 font-mono font-bold text-emerald-700">{{ fp_data.type_totals.EO }} FP</td>
+                    </tr>
+                    <tr>
+                        <td class="px-4 py-3 font-bold text-slate-800">External Inquiries (EQ)</td>
+                        <td class="px-4 py-3">Catalog Search, Member Loan Query, Decision Table Simulation, Hold Position</td>
+                        <td class="px-4 py-3">{{ fp_data.categories.EQ|length }} inquiries</td>
+                        <td class="px-4 py-3 font-mono font-bold text-emerald-700">{{ fp_data.type_totals.EQ }} FP</td>
+                    </tr>
+                    <tr class="bg-slate-50 font-bold">
+                        <td colspan="3" class="px-4 py-3 text-slate-800">TOTAL UNADJUSTED FUNCTION POINTS (UFP)</td>
+                        <td class="px-4 py-3 font-mono text-emerald-800 text-sm">{{ fp_data.unadjusted_fp }} FP</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SECTION 3: DECISION TABLE FORMAL SPEC -->
+    <div id="table-section" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+        <div>
+            <span class="text-xs font-bold text-amber-600 uppercase tracking-wider">Formal Logic Specification</span>
+            <h2 class="text-xl font-bold text-slate-800 mt-1">3. Decision Table for Fines Formulation</h2>
+            <p class="text-xs text-slate-500 mt-1">Condition Stubs, Action Stubs, and Truth Table governing late return penalties.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <h4 class="text-sm font-bold text-slate-800 mb-2">Condition Stubs</h4>
+                <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+                    <li><strong class="text-slate-800">C1: Member Role</strong> &rarr; {Student, Faculty, Guest}</li>
+                    <li><strong class="text-slate-800">C2: Days Overdue</strong> &rarr; {0-2 (Grace), 3-7 (Tier 1), 8-21 (Tier 2), &gt;21 (Tier 3)}</li>
+                    <li><strong class="text-slate-800">C3: Book Tier</strong> &rarr; {Standard (1x), Course Reserve (2x), Rare/Reference (3x)}</li>
+                    <li><strong class="text-slate-800">C4: Physical Condition</strong> &rarr; {Normal, Minor Damage, Severe Damage, Lost}</li>
+                </ul>
+            </div>
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <h4 class="text-sm font-bold text-slate-800 mb-2">Action Stubs</h4>
+                <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+                    <li><strong class="text-slate-800">A1: Daily Rate Applied</strong> &rarr; {$0.50 (Student), $0.20 (Faculty), $1.00 (Guest)}</li>
+                    <li><strong class="text-slate-800">A2: Multiplier Factored</strong> &rarr; {1.0x, 2.0x, 3.0x}</li>
+                    <li><strong class="text-slate-800">A3: Cap Enforcement</strong> &rarr; {$20 (Student), $30 (Faculty), $50 (Guest)}</li>
+                    <li><strong class="text-slate-800">A4: Damage / Lost Penalty</strong> &rarr; {+$5.00 Minor, +$15.00 Severe, Cost+$10 Lost}</li>
+                    <li><strong class="text-slate-800">A5: Account Privilege Action</strong> &rarr; {Normal, Warning, Suspended}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
