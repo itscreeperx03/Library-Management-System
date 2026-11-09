@@ -32,6 +32,14 @@ def verify_all_views():
         assert title_fragment in res.data.decode('utf-8'), f"Missing expected text on {path}"
         print(f"  [+] {path.ljust(15)} -> 200 OK (Content verified)")
 
+    print("\n[*] Testing Health Check Endpoints:")
+    for h_path in ['/health', '/api/health']:
+        res = client.get(h_path)
+        assert res.status_code == 200, f"Health check failed on {h_path}"
+        data = json.loads(res.data)
+        assert data.get('status') == 'healthy', f"Unhealthy status on {h_path}"
+        print(f"  [+] {h_path.ljust(28)} -> 200 OK (Status: healthy)")
+
     print("\n[*] Testing RESTful API Endpoints:")
     api_tests = [
         ('/api/books', 'books'),

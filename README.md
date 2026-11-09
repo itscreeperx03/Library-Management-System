@@ -3,7 +3,8 @@
 
 [![Python 3.15](https://img.shields.io/badge/Python-3.15-blue.svg)](https://www.python.org/)
 [![Flask 3.1](https://img.shields.io/badge/Flask-3.1-black.svg)](https://flask.palletsprojects.com/)
-[![Tests](https://img.shields.io/badge/Pytest-31%20Passed%20(100%25)-brightgreen.svg)](tests/)
+[![Render](https://img.shields.io/badge/Deploy%20to-Render-46E3B7.svg)](docs/RENDER_DEPLOYMENT.md)
+[![Tests](https://img.shields.io/badge/Pytest-32%20Passed%20(100%25)-brightgreen.svg)](tests/)
 [![Lifecycle](https://img.shields.io/badge/Model-Iterative%20Waterfall-purple.svg)](docs/SPMP.md)
 [![IFPUG](https://img.shields.io/badge/Function%20Points-160.46%20AFP-orange.svg)](docs/FUNCTION_POINT_ANALYSIS.md)
 
@@ -117,7 +118,14 @@ python -m pytest -v
 
 ## 6. Production Deployment & Web Publishing
 
-### Option A: WSGI Server (Waitress on Windows / Gunicorn on Linux)
+### Option A: One-Click Cloud Deployment on Render (Recommended)
+This repository includes a [`render.yaml`](render.yaml) blueprint specification for automated free cloud hosting:
+1. Log in to [Render Dashboard](https://dashboard.render.com/).
+2. Select **Blueprints** &rarr; Connect `itscreeperx03/Library-Management-System`.
+3. Click **Apply** to deploy live!
+*See detailed step-by-step instructions in [`docs/RENDER_DEPLOYMENT.md`](docs/RENDER_DEPLOYMENT.md).*
+
+### Option B: WSGI Server (Waitress on Windows / Gunicorn on Linux)
 ```bash
 # Using Waitress (Windows production server)
 waitress-serve --port=5000 wsgi:application

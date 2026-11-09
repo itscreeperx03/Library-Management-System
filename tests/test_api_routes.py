@@ -7,6 +7,18 @@ Integration testing of REST API endpoints for catalog, circulation, fines, and S
 import json
 import pytest
 
+def test_api_health_check(client):
+    res = client.get('/health')
+    assert res.status_code == 200
+    data = json.loads(res.data)
+    assert data['status'] == 'healthy'
+
+    api_res = client.get('/api/health')
+    assert api_res.status_code == 200
+    api_data = json.loads(api_res.data)
+    assert api_data['status'] == 'healthy'
+    assert api_data['database'] == 'connected'
+
 def test_api_get_books(client):
     response = client.get('/api/books')
     assert response.status_code == 200

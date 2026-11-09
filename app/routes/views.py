@@ -4,7 +4,7 @@ views.py
 Web view controllers rendering HTML templates for the Library Management System.
 """
 
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, jsonify
 from app.services.circulation_service import CirculationService
 from app.services.catalog_service import CatalogService
 from app.services.member_service import MemberService
@@ -12,6 +12,10 @@ from app.services.fine_calculator import FineDecisionTable
 from app.services.fp_service import calculate_fp
 
 views_bp = Blueprint('views', __name__)
+
+@views_bp.route('/health')
+def health():
+    return jsonify({'status': 'healthy', 'service': 'athena-lms'}), 200
 
 @views_bp.route('/')
 def index():

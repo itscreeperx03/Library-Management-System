@@ -13,6 +13,27 @@ from app.services.fp_service import calculate_fp
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
+# --- HEALTH CHECK ENDPOINT ---
+@api_bp.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint for Render, cloud monitors, and container orchestrators."""
+    try:
+        from app.database import get_db_connection
+        conn = get_db_connection()
+        conn.execute("SELECT 1").fetchone()
+        conn.close()
+        return jsonify({
+            'status': 'healthy',
+            'service': 'Athena Library Management System',
+            'database': 'connected',
+            'version': '2.0.0'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e)
+        }), 500
+
 # --- CATALOG ENDPOINTS ---
 @api_bp.route('/books', methods=['GET'])
 def get_books():
