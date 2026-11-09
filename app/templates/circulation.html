@@ -111,9 +111,12 @@
             </button>
         </div>
         <form id="issueBookForm" class="mt-4 space-y-4">
+            <!-- Inline Status / Error Alert Banner -->
+            <div id="issueFormAlert" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
+
             <div>
                 <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Select Member *</label>
-                <select name="member_id" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500">
+                <select name="member_id" id="issueMemberSelect" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500">
                     <option value="">-- Choose Member --</option>
                     {% for m in members %}
                     <option value="{{ m.id }}">{{ m.name }} ({{ m.member_code }} &bull; {{ m.member_type }})</option>
@@ -122,7 +125,7 @@
             </div>
             <div>
                 <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Select Available Book *</label>
-                <select name="book_id" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500">
+                <select name="book_id" id="issueBookSelect" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500">
                     <option value="">-- Choose Book --</option>
                     {% for b in books %}
                     <option value="{{ b.id }}">{{ b.title }} [{{ b.tier }}] ({{ b.available_copies }} copies left)</option>
@@ -141,7 +144,9 @@
             </div>
             <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
                 <button type="button" onclick="closeModal('issueBookModal')" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-sm font-semibold shadow-sm">Confirm Checkout</button>
+                <button type="submit" id="issueSubmitBtn" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-sm font-semibold shadow-sm transition flex items-center">
+                    Confirm Checkout
+                </button>
             </div>
         </form>
     </div>
@@ -265,6 +270,14 @@
     // Form Submissions
     document.getElementById('issueBookForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitBtn = document.getElementById('issueSubmitBtn');
+        const alertBox = document.getElementById('issueFormAlert');
+        
+        alertBox.classList.add('hidden');
+        alertBox.innerHTML = '';
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Processing...';
+
         const data = Object.fromEntries(new FormData(e.target).entries());
         try {
             const res = await fetch('/api/circulation/issue', {
@@ -274,13 +287,41 @@
             });
             const result = await res.json();
             if (result.success) {
+                alertBox.className = 'p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 block';
+                alertBox.innerHTML = `<i class="fa-solid fa-circle-check mr-1.5"></i> ${result.message}`;
                 showToast(result.message, 'success');
-                setTimeout(() => window.location.reload(), 800);
+                setTimeout(() => window.location.reload(), 900);
             } else {
-                showToast(result.message || result.error, 'error');
+                alertBox.className = 'p-3 rounded-xl text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200 block';
+                alertBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1.5"></i> ${result.message || result.error || 'Issue failed'}`;
+                showToast(result.message || result.error || 'Unable to issue book', 'warning');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Confirm Checkout';
             }
         } catch (e) {
+            alertBox.className = 'p-3 rounded-xl text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200 block';
+            alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Network error communicating with server.';
             showToast('Network error during issue', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Confirm Checkout';
+        }
+    });
+
+    // Auto-open modal if book_id or member_id present in URL
+    window.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const bId = params.get('book_id');
+        const mId = params.get('member_id');
+        if (bId || mId) {
+            openModal('issueBookModal');
+            if (bId) {
+                const bSelect = document.getElementById('issueBookSelect');
+                if (bSelect) bSelect.value = bId;
+            }
+            if (mId) {
+                const mSelect = document.getElementById('issueMemberSelect');
+                if (mSelect) mSelect.value = mId;
+            }
         }
     });
 

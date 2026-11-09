@@ -57,7 +57,16 @@ class CirculationService:
                 return False, "No copies currently available for checkout. Consider placing a reservation.", None
 
             # 4. Determine Loan Duration
-            loan_days = due_days if due_days and due_days > 0 else member['loan_period_days']
+            if due_days is not None and str(due_days).strip() != '':
+                try:
+                    loan_days = int(due_days)
+                    if loan_days <= 0:
+                        loan_days = member['loan_period_days']
+                except (ValueError, TypeError):
+                    loan_days = member['loan_period_days']
+            else:
+                loan_days = member['loan_period_days']
+
             today = datetime.now()
             issue_date = today.strftime('%Y-%m-%d')
             due_date = (today + timedelta(days=loan_days)).strftime('%Y-%m-%d')

@@ -114,11 +114,23 @@ def issue_book():
     notes = data.get('notes')
 
     if not book_id or not member_id:
-        return jsonify({'success': False, 'error': 'Book ID and Member ID are required.'}), 400
+        return jsonify({'success': False, 'message': 'Please select both a Member and an available Book.'}), 200
 
-    success, msg, record = CirculationService.issue_book(int(book_id), int(member_id), due_days, notes)
-    status_code = 200 if success else 400
-    return jsonify({'success': success, 'message': msg, 'record': record}), status_code
+    try:
+        b_id = int(book_id)
+        m_id = int(member_id)
+    except (ValueError, TypeError):
+        return jsonify({'success': False, 'message': 'Invalid Book ID or Member ID format.'}), 200
+
+    d_days = None
+    if due_days is not None and str(due_days).strip() != '':
+        try:
+            d_days = int(due_days)
+        except (ValueError, TypeError):
+            d_days = None
+
+    success, msg, record = CirculationService.issue_book(b_id, m_id, d_days, notes)
+    return jsonify({'success': success, 'message': msg, 'record': record}), 200
 
 @api_bp.route('/circulation/return', methods=['POST'])
 def return_book():
@@ -129,24 +141,37 @@ def return_book():
     simulated_date = data.get('return_date') # Allows testing hypothetical overdue dates!
 
     if not borrow_id:
-        return jsonify({'success': False, 'error': 'Borrow record ID is required.'}), 400
+        return jsonify({'success': False, 'message': 'Borrow record ID is required.'}), 200
 
-    success, msg, details = CirculationService.return_book(int(borrow_id), condition, notes, simulated_date)
-    status_code = 200 if success else 400
-    return jsonify({'success': success, 'message': msg, 'details': details}), status_code
+    try:
+        br_id = int(borrow_id)
+    except (ValueError, TypeError):
+        return jsonify({'success': False, 'message': 'Invalid borrow record ID format.'}), 200
+
+    success, msg, details = CirculationService.return_book(br_id, condition, notes, simulated_date)
+    return jsonify({'success': success, 'message': msg, 'details': details}), 200
 
 @api_bp.route('/circulation/renew', methods=['POST'])
 def renew_book():
     data = request.get_json() or {}
     borrow_id = data.get('borrow_record_id')
-    additional_days = int(data.get('additional_days', 14))
+    additional_days = 14
+    if data.get('additional_days'):
+        try:
+            additional_days = int(data.get('additional_days'))
+        except (ValueError, TypeError):
+            additional_days = 14
 
     if not borrow_id:
-        return jsonify({'success': False, 'error': 'Borrow record ID is required.'}), 400
+        return jsonify({'success': False, 'message': 'Borrow record ID is required.'}), 200
 
-    success, msg, details = CirculationService.renew_book(int(borrow_id), additional_days)
-    status_code = 200 if success else 400
-    return jsonify({'success': success, 'message': msg, 'details': details}), status_code
+    try:
+        br_id = int(borrow_id)
+    except (ValueError, TypeError):
+        return jsonify({'success': False, 'message': 'Invalid borrow record ID format.'}), 200
+
+    success, msg, details = CirculationService.renew_book(br_id, additional_days)
+    return jsonify({'success': success, 'message': msg, 'details': details}), 200
 
 @api_bp.route('/circulation/reserve', methods=['POST'])
 def reserve_book():
@@ -154,11 +179,16 @@ def reserve_book():
     book_id = data.get('book_id')
     member_id = data.get('member_id')
     if not book_id or not member_id:
-        return jsonify({'success': False, 'error': 'Book ID and Member ID are required.'}), 400
+        return jsonify({'success': False, 'message': 'Book ID and Member ID are required.'}), 200
 
-    success, msg = CirculationService.reserve_book(int(book_id), int(member_id))
-    status_code = 200 if success else 400
-    return jsonify({'success': success, 'message': msg}), status_code
+    try:
+        b_id = int(book_id)
+        m_id = int(member_id)
+    except (ValueError, TypeError):
+        return jsonify({'success': False, 'message': 'Invalid Book ID or Member ID format.'}), 200
+
+    success, msg = CirculationService.reserve_book(b_id, m_id)
+    return jsonify({'success': success, 'message': msg}), 200
 
 @api_bp.route('/circulation/loans', methods=['GET'])
 def get_loans():
